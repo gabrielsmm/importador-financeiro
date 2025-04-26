@@ -7,7 +7,7 @@ import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 
 import java.time.ZoneId;
 
@@ -20,10 +20,10 @@ public class TransacaoReaderConfig {
 
     @StepScope
     @Bean
-    public FlatFileItemReader<Transacao> transacaoReader(@Value("#{jobParameters['arquivo']}") String nomeArquivo) {
+    public FlatFileItemReader<Transacao> transacaoReader(@Value("#{jobParameters['arquivo']}") String caminhoArquivo) {
         return new FlatFileItemReaderBuilder<Transacao>()
                 .name("transacaoReader")
-                .resource(new ClassPathResource("transacoes.csv"))
+                .resource(new FileSystemResource(caminhoArquivo))
                 .delimited()
                 .names("id", "cliente", "data", "valor", "moeda", "categoria")
                 .fieldSetMapper(fieldSet -> {
