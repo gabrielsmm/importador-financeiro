@@ -41,7 +41,7 @@ public class ImportarTransacoesConfig {
     @Bean
     public Step importarTransacoesStep() {
         return new StepBuilder("importarTransacoesStep", jobRepository)
-                .<Transacao, Transacao>chunk(10, transactionManager)
+                .<Transacao, Transacao>chunk(1000, transactionManager)
                 .reader(transacaoReader)
                 .processor(transacaoProcessor)
                 .writer(transacaoWriter)
