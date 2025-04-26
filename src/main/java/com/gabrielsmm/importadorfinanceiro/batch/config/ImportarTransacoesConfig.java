@@ -1,5 +1,7 @@
 package com.gabrielsmm.importadorfinanceiro.batch.config;
 
+import com.gabrielsmm.importadorfinanceiro.batch.support.FileParseSkipPolicy;
+import com.gabrielsmm.importadorfinanceiro.batch.support.TransacaoSkipListener;
 import com.gabrielsmm.importadorfinanceiro.domain.Transacao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -27,6 +29,7 @@ public class ImportarTransacoesConfig {
     private final ItemReader<Transacao> transacaoReader;
     private final ItemProcessor<Transacao, Transacao> transacaoProcessor;
     private final ItemWriter<Transacao> transacaoWriter;
+    private final TransacaoSkipListener skipListener;
 
     @Bean
     public Job importarTransacoesJob() {
@@ -42,6 +45,9 @@ public class ImportarTransacoesConfig {
                 .reader(transacaoReader)
                 .processor(transacaoProcessor)
                 .writer(transacaoWriter)
+                .faultTolerant()
+                .skipPolicy(new FileParseSkipPolicy())
+                .listener(skipListener)
                 .build();
     }
 

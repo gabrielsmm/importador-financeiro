@@ -25,10 +25,9 @@ public class TransacaoReaderConfig {
                 .name("transacaoReader")
                 .resource(new FileSystemResource(caminhoArquivo))
                 .delimited()
-                .names("id", "cliente", "data", "valor", "moeda", "categoria")
+                .names("cliente", "data", "valor", "moeda", "categoria")
                 .fieldSetMapper(fieldSet -> {
                     Transacao t = new Transacao();
-                    t.setId(fieldSet.readLong("id"));
                     t.setCliente(fieldSet.readString("cliente"));
                     t.setData(fieldSet.readDate("data", "yyyy-MM-dd").toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
                     t.setValor(fieldSet.readBigDecimal("valor"));

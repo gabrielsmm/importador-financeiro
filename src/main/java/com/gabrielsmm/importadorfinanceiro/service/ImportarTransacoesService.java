@@ -1,5 +1,6 @@
 package com.gabrielsmm.importadorfinanceiro.service;
 
+import com.gabrielsmm.importadorfinanceiro.batch.support.TransacaoSkipListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -15,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -23,13 +25,17 @@ public class ImportarTransacoesService {
 
     private final JobLauncher jobLauncher;
     private final Job importarTransacoesJob;
+    private final TransacaoSkipListener skipListener;
 
-    public ImportarTransacoesService(JobLauncher jobLauncher, @Qualifier("importarTransacoesJob") Job importarTransacoesJob) {
+    public ImportarTransacoesService(JobLauncher jobLauncher,
+                                     @Qualifier("importarTransacoesJob") Job importarTransacoesJob,
+                                     TransacaoSkipListener skipListener) {
         this.jobLauncher = jobLauncher;
         this.importarTransacoesJob = importarTransacoesJob;
+        this.skipListener = skipListener;
     }
 
-    public void executarImportacao(MultipartFile arquivo) throws Exception {
+    public List<String> executarImportacao(MultipartFile arquivo) throws Exception {
         String nomeOriginal = arquivo.getOriginalFilename();
         if (nomeOriginal == null || !nomeOriginal.toLowerCase().endsWith(".csv")) {
             throw new IllegalArgumentException("Apenas arquivos .csv são permitidos.");
@@ -37,6 +43,8 @@ public class ImportarTransacoesService {
 
         log.info("Iniciando importação do arquivo: {}", nomeOriginal);
         Path destino = salvarArquivoTemporariamente(arquivo);
+
+        skipListener.limpar();
 
         JobParameters parametros = new JobParametersBuilder()
                 .addString("arquivo", destino.toAbsolutePath().toString())
@@ -47,6 +55,8 @@ public class ImportarTransacoesService {
 
         log.info("Status da execução: {}", execution.getStatus());
         log.info("Finalizado em: {}", execution.getEndTime());
+
+        return skipListener.getLinhasComErro();
     }
 
     private static Path salvarArquivoTemporariamente(MultipartFile arquivo) throws IOException {
