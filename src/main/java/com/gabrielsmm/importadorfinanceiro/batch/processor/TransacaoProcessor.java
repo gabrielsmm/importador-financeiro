@@ -2,12 +2,12 @@ package com.gabrielsmm.importadorfinanceiro.batch.processor;
 
 import com.gabrielsmm.importadorfinanceiro.domain.Transacao;
 import com.gabrielsmm.importadorfinanceiro.repository.TransacaoRepository;
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.validator.ValidationException;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -38,6 +38,9 @@ public class TransacaoProcessor implements ItemProcessor<Transacao, Transacao>, 
         if (transacao.getCliente() == null || transacao.getCliente().isBlank()) {
             throw new ValidationException("Cliente não pode ser vazio.");
         }
+        if (transacao.getData() == null || transacao.getData().isAfter(LocalDate.now())) {
+            throw new ValidationException("Data não pode ser nula ou maior que a data atual.");
+        }
         if (transacao.getValor() == null || transacao.getValor().compareTo(BigDecimal.ZERO) <= 0) {
             throw new ValidationException("Valor deve ser maior que zero.");
         }
@@ -52,7 +55,7 @@ public class TransacaoProcessor implements ItemProcessor<Transacao, Transacao>, 
     }
 
     private String gerarChave(String cliente, LocalDate data, BigDecimal valor) {
-        return cliente + "|" + data + "|" + valor;
+        return cliente.trim().toLowerCase() + "|" + data + "|" + valor.stripTrailingZeros();
     }
 
     @Override

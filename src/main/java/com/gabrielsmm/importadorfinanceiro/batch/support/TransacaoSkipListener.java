@@ -2,6 +2,7 @@ package com.gabrielsmm.importadorfinanceiro.batch.support;
 
 import org.springframework.batch.core.SkipListener;
 import org.springframework.batch.item.file.FlatFileParseException;
+import org.springframework.batch.item.validator.ValidationException;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -16,6 +17,9 @@ public class TransacaoSkipListener implements SkipListener<Object, Object> {
     public void onSkipInRead(Throwable t) {
         if (t instanceof FlatFileParseException ffpe) {
             linhasComErro.add("Linha " + ffpe.getLineNumber() + ": " + ffpe.getInput());
+        }
+        if (t instanceof ValidationException ve) {
+            linhasComErro.add("Erro de validação: " + ve.getMessage());
         }
     }
 

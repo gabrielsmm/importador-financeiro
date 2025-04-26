@@ -1,6 +1,6 @@
 package com.gabrielsmm.importadorfinanceiro.batch.config;
 
-import com.gabrielsmm.importadorfinanceiro.batch.support.FileParseSkipPolicy;
+import com.gabrielsmm.importadorfinanceiro.batch.support.TransacaoSkipPolicy;
 import com.gabrielsmm.importadorfinanceiro.batch.support.TransacaoSkipListener;
 import com.gabrielsmm.importadorfinanceiro.domain.Transacao;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +46,7 @@ public class ImportarTransacoesConfig {
                 .processor(transacaoProcessor)
                 .writer(transacaoWriter)
                 .faultTolerant()
-                .skipPolicy(new FileParseSkipPolicy())
+                .skipPolicy(new TransacaoSkipPolicy())
                 .listener(skipListener)
                 .build();
     }
