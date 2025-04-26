@@ -46,7 +46,7 @@ public class ImportarTransacoesConfig {
                 .processor(transacaoProcessor)
                 .writer(transacaoWriter)
                 .faultTolerant()
-                .skipPolicy(new TransacaoSkipPolicy())
+                .skipPolicy(new TransacaoSkipPolicy(skipListener))
                 .listener(skipListener)
                 .build();
     }

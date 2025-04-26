@@ -1,5 +1,6 @@
 package com.gabrielsmm.importadorfinanceiro.batch.processor;
 
+import com.gabrielsmm.importadorfinanceiro.batch.support.TransacaoSkipListener;
 import com.gabrielsmm.importadorfinanceiro.domain.Transacao;
 import com.gabrielsmm.importadorfinanceiro.repository.TransacaoRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,8 @@ public class TransacaoProcessor implements ItemProcessor<Transacao, Transacao>, 
 
     private final TransacaoRepository transacaoRepository;
 
+    private final TransacaoSkipListener skipListener;
+
     @Override
     public void beforeStep(StepExecution stepExecution) {
         transacoesExistentes = transacaoRepository.findAll().stream()
@@ -48,6 +51,11 @@ public class TransacaoProcessor implements ItemProcessor<Transacao, Transacao>, 
         String chave = gerarChave(transacao.getCliente(), transacao.getData(), transacao.getValor());
 
         if (transacoesExistentes.contains(chave)) {
+            skipListener.onSkipInRead(new ValidationException(
+                    "Transação já existente: Cliente=" + transacao.getCliente() +
+                            ", Data=" + transacao.getData() +
+                            ", Valor=" + transacao.getValor()
+            ));
             return null; // ignora
         }
 

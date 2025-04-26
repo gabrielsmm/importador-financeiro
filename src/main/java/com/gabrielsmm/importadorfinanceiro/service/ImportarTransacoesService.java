@@ -11,12 +11,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -26,16 +26,19 @@ public class ImportarTransacoesService {
     private final JobLauncher jobLauncher;
     private final Job importarTransacoesJob;
     private final TransacaoSkipListener skipListener;
+    private final RelatorioImportacaoService relatorioImportacaoService;
 
     public ImportarTransacoesService(JobLauncher jobLauncher,
                                      @Qualifier("importarTransacoesJob") Job importarTransacoesJob,
-                                     TransacaoSkipListener skipListener) {
+                                     TransacaoSkipListener skipListener,
+                                     RelatorioImportacaoService relatorioImportacaoService) {
         this.jobLauncher = jobLauncher;
         this.importarTransacoesJob = importarTransacoesJob;
         this.skipListener = skipListener;
+        this.relatorioImportacaoService = relatorioImportacaoService;
     }
 
-    public List<String> executarImportacao(MultipartFile arquivo) throws Exception {
+    public File executarImportacao(MultipartFile arquivo) throws Exception {
         String nomeOriginal = arquivo.getOriginalFilename();
         if (nomeOriginal == null || !nomeOriginal.toLowerCase().endsWith(".csv")) {
             throw new IllegalArgumentException("Apenas arquivos .csv são permitidos.");
@@ -56,7 +59,7 @@ public class ImportarTransacoesService {
         log.info("Status da execução: {}", execution.getStatus());
         log.info("Finalizado em: {}", execution.getEndTime());
 
-        return skipListener.getLinhasComErro();
+        return relatorioImportacaoService.gerarRelatorio(skipListener.getLinhasComErro());
     }
 
     private static Path salvarArquivoTemporariamente(MultipartFile arquivo) throws IOException {
