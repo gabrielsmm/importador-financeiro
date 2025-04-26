@@ -1,6 +1,8 @@
 package com.gabrielsmm.importadorfinanceiro.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -15,6 +17,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class ImportarTransacoesService {
 
@@ -27,6 +30,12 @@ public class ImportarTransacoesService {
     }
 
     public void executarImportacao(MultipartFile arquivo) throws Exception {
+        String nomeOriginal = arquivo.getOriginalFilename();
+        if (nomeOriginal == null || !nomeOriginal.toLowerCase().endsWith(".csv")) {
+            throw new IllegalArgumentException("Apenas arquivos .csv são permitidos.");
+        }
+
+        log.info("Iniciando importação do arquivo: {}", nomeOriginal);
         Path destino = salvarArquivoTemporariamente(arquivo);
 
         JobParameters parametros = new JobParametersBuilder()
@@ -34,7 +43,10 @@ public class ImportarTransacoesService {
                 .addLong("timestamp", System.currentTimeMillis())
                 .toJobParameters();
 
-        jobLauncher.run(importarTransacoesJob, parametros);
+        JobExecution execution = jobLauncher.run(importarTransacoesJob, parametros);
+
+        log.info("Status da execução: {}", execution.getStatus());
+        log.info("Finalizado em: {}", execution.getEndTime());
     }
 
     private static Path salvarArquivoTemporariamente(MultipartFile arquivo) throws IOException {
